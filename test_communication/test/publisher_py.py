@@ -18,14 +18,16 @@ import os
 import sys
 import time
 
+import rclpy
+from rclpy.qos import qos_profile_default
+from rclpy.qos import QoSReliabilityPolicy
+
 # this is needed to allow import of test_communication messages
 sys.path.insert(0, os.getcwd())
 
 
-def talker(message_name, number_of_cycles):
+def talker(message_name, number_of_cycles, qos_profile):
     from message_fixtures import get_test_msg
-    import rclpy
-    from rclpy.qos import qos_profile_default
 
     message_pkg = 'test_communication'
     module = importlib.import_module(message_pkg + '.msg')
@@ -59,11 +61,22 @@ if __name__ == '__main__':
                         help='name of the ROS message')
     parser.add_argument('-n', '--number_of_cycles', type=int, default=100,
                         help='number of sending attempts')
+    parser.add_argument('qos_reliability', default='reliable', nargs='?',
+                        help='QoS reliability policy (reliable or best_effort)')
     args = parser.parse_args()
+
+    qos_profile = qos_profile_default
+    if args.qos_reliability == 'best_effort':
+        qos_profile.reliability = QoSReliabilityPolicy.RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT
+    else:
+        qos_profile.reliability = QoSReliabilityPolicy.RMW_QOS_POLICY_RELIABILITY_RELIABLE
+
     try:
         talker(
             message_name=args.message_name,
-            number_of_cycles=args.number_of_cycles)
+            number_of_cycles=args.number_of_cycles,
+            qos_profile=qos_profile,
+        )
     except KeyboardInterrupt:
         print('talker stopped cleanly')
     except BaseException:

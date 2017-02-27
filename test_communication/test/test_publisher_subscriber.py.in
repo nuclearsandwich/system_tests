@@ -8,8 +8,8 @@ from launch.launcher import DefaultLauncher
 
 def test_publisher_subscriber():
     ld = LaunchDescriptor()
-    publisher_cmd = ['@TEST_PUBLISHER_EXECUTABLE@', '@TEST_MESSAGE_TYPE@']
-    subscriber_cmd = ['@TEST_SUBSCRIBER_EXECUTABLE@', '@TEST_MESSAGE_TYPE@']
+    publisher_cmd = ['@TEST_PUBLISHER_EXECUTABLE@', '@TEST_MESSAGE_TYPE@', '@TEST_QOS_RELIABLITY@']
+    subscriber_cmd = ['@TEST_SUBSCRIBER_EXECUTABLE@', '@TEST_MESSAGE_TYPE@', '@TEST_QOS_RELIABLITY@']
 
     if '@TEST_PUBLISHER_RCL@' == 'rclpy':
         publisher_cmd.insert(0, sys.executable)

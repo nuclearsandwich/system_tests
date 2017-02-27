@@ -43,6 +43,10 @@ if(BUILD_TESTING)
     "srv/Empty.srv"
     "srv/Primitives.srv"
   )
+  set(qos_reliability_policies
+    "reliable"
+    "best_effort"
+  )
   rosidl_generate_interfaces(${PROJECT_NAME}
     ${message_files}
     ${other_message_files}
@@ -139,39 +143,40 @@ if(BUILD_TESTING)
     foreach(message_file ${message_files})
       get_filename_component(TEST_MESSAGE_TYPE "${message_file}" NAME_WE)
 
-      set(test_suffix "__${TEST_MESSAGE_TYPE}${suffix}")
-      configure_file(
-        test/test_publisher_subscriber.py.in
-        test_publisher_subscriber${test_suffix}.py.configured
-        @ONLY
-      )
-      file(GENERATE
-        OUTPUT "test_publisher_subscriber${test_suffix}_$<CONFIG>.py"
-        INPUT "${CMAKE_CURRENT_BINARY_DIR}/test_publisher_subscriber${test_suffix}.py.configured"
-      )
+      foreach(TEST_QOS_RELIABLITY ${qos_reliability_policies})
+        set(test_suffix "__${TEST_MESSAGE_TYPE}__${TEST_QOS_RELIABLITY}${suffix}")
+        configure_file(
+          test/test_publisher_subscriber.py.in
+          test_publisher_subscriber${test_suffix}.py.configured
+          @ONLY
+        )
+        file(GENERATE
+          OUTPUT "test_publisher_subscriber${test_suffix}_$<CONFIG>.py"
+          INPUT "${CMAKE_CURRENT_BINARY_DIR}/test_publisher_subscriber${test_suffix}.py.configured"
+        )
 
-      set(SKIP_TEST "")
-      # TODO(dirk-thomas) publishing Bounded/DynamicArrayPrimitives in OpenSplice is buggy
-      # https://github.com/ros2/rclcpp/issues/219
-      if(
-        (TEST_MESSAGE_TYPE STREQUAL "BoundedArrayPrimitives" OR TEST_MESSAGE_TYPE STREQUAL "DynamicArrayPrimitives") AND
-        rmw_implementation1 STREQUAL "rmw_opensplice_cpp"
-      )
-        set(SKIP_TEST "SKIP_TEST")
-      endif()
-      # TODO(mikaelarguedas) Simpler way to blacklist specific tests (e.g. regex matching)
-      ament_add_nose_test(test_publisher_subscriber${test_suffix}
-        "${CMAKE_CURRENT_BINARY_DIR}/test_publisher_subscriber${test_suffix}_$<CONFIG>.py"
-        WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_py"
-        PYTHON_EXECUTABLE "${_PYTHON_EXECUTABLE}"
-        APPEND_ENV PYTHONPATH="${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_py:${CMAKE_CURRENT_SOURCE_DIR}:${CMAKE_CURRENT_BINARY_DIR}/../../rclpy"
-        APPEND_LIBRARY_DIRS "${append_library_dirs}"
-        TIMEOUT 15
-        ${SKIP_TEST})
-      set_tests_properties(
-        test_publisher_subscriber${test_suffix}
-        PROPERTIES DEPENDS "test_publisher_cpp__${rmw_implementation1};test_subscriber_cpp__${rmw_implementation2}"
-      )
+        set(SKIP_TEST "")
+        # TODO(dirk-thomas) publishing Bounded/DynamicArrayPrimitives in OpenSplice is buggy
+        # https://github.com/ros2/rclcpp/issues/219
+        if(
+          (TEST_MESSAGE_TYPE STREQUAL "BoundedArrayPrimitives" OR TEST_MESSAGE_TYPE STREQUAL "DynamicArrayPrimitives") AND
+          rmw_implementation1 STREQUAL "rmw_opensplice_cpp"
+        )
+          set(SKIP_TEST "SKIP_TEST")
+        endif()
+        ament_add_nose_test(test_publisher_subscriber${test_suffix}
+          "${CMAKE_CURRENT_BINARY_DIR}/test_publisher_subscriber${test_suffix}_$<CONFIG>.py"
+          WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_py"
+          PYTHON_EXECUTABLE "${_PYTHON_EXECUTABLE}"
+          APPEND_ENV PYTHONPATH="${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_py:${CMAKE_CURRENT_SOURCE_DIR}:${CMAKE_CURRENT_BINARY_DIR}/../../rclpy"
+          APPEND_LIBRARY_DIRS "${append_library_dirs}"
+          TIMEOUT 15
+          ${SKIP_TEST})
+        set_tests_properties(
+          test_publisher_subscriber${test_suffix}
+          PROPERTIES DEPENDS "test_publisher_cpp__${rmw_implementation1};test_subscriber_cpp__${rmw_implementation2}"
+        )
+      endforeach()
     endforeach()
 
     # test requester / replier
