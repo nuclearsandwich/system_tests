@@ -28,7 +28,9 @@ rclcpp::subscription::SubscriptionBase::SharedPtr subscribe(
   rclcpp::Node::SharedPtr node,
   const std::string & message_type,
   std::vector<typename T::SharedPtr> & expected_messages,
-  std::vector<bool> & received_messages)
+  std::vector<bool> & received_messages,
+  rmw_qos_profile_t qos_profile
+  )
 {
   received_messages.assign(expected_messages.size(), false);
 
@@ -65,26 +67,35 @@ rclcpp::subscription::SubscriptionBase::SharedPtr subscribe(
       rclcpp::shutdown();
     };
 
-  rmw_qos_profile_t custom_qos_profile = rmw_qos_profile_default;
-  custom_qos_profile.depth = expected_messages.size();
-
   auto subscriber = node->create_subscription<T>(
-    std::string("test_message_") + message_type, callback, custom_qos_profile);
+    std::string("test_message_") + message_type, callback, qos_profile);
   return subscriber;
 }
 
 int main(int argc, char ** argv)
 {
   rclcpp::init(argc, argv);
-  if (argc != 2) {
-    fprintf(stderr, "Wrong number of arguments, pass one message type\n");
+  if (argc != 3) {
+    fprintf(stderr, "Wrong number of arguments, pass a message type and a reliability policy\n");
     return 1;
   }
 
   auto start = std::chrono::steady_clock::now();
 
   std::string message = argv[1];
+  std::string qos_reliability_policy = argv[2];
   auto node = rclcpp::Node::make_shared(std::string("test_subscriber_") + message);
+
+  rmw_qos_profile_t qos_profile = rmw_qos_profile_default;
+  if (qos_reliability_policy == "reliable") {
+    qos_profile.reliability = RMW_QOS_POLICY_RELIABILITY_RELIABLE;
+  } else if (qos_reliability_policy == "best_effort") {
+    qos_profile.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
+  } else {
+    fprintf(
+      stderr, "Unknown QoS reliability policy argument '%s'\n", qos_reliability_policy.c_str());
+    return 1;
+  }
 
   auto messages_empty = get_messages_empty();
   auto messages_primitives = get_messages_primitives();
@@ -101,34 +112,34 @@ int main(int argc, char ** argv)
   std::vector<bool> received_messages;  // collect flags about received messages
   if (message == "Empty") {
     subscriber = subscribe<test_communication::msg::Empty>(
-      node, message, messages_empty, received_messages);
+      node, message, messages_empty, received_messages, qos_profile);
   } else if (message == "Primitives") {
     subscriber = subscribe<test_communication::msg::Primitives>(
-      node, message, messages_primitives, received_messages);
+      node, message, messages_primitives, received_messages, qos_profile);
   } else if (message == "StaticArrayPrimitives") {
     subscriber = subscribe<test_communication::msg::StaticArrayPrimitives>(
-      node, message, messages_static_array_primitives, received_messages);
+      node, message, messages_static_array_primitives, received_messages, qos_profile);
   } else if (message == "DynamicArrayPrimitives") {
     subscriber = subscribe<test_communication::msg::DynamicArrayPrimitives>(
-      node, message, messages_dynamic_array_primitives, received_messages);
+      node, message, messages_dynamic_array_primitives, received_messages, qos_profile);
   } else if (message == "BoundedArrayPrimitives") {
     subscriber = subscribe<test_communication::msg::BoundedArrayPrimitives>(
-      node, message, messages_bounded_array_primitives, received_messages);
+      node, message, messages_bounded_array_primitives, received_messages, qos_profile);
   } else if (message == "Nested") {
     subscriber = subscribe<test_communication::msg::Nested>(
-      node, message, messages_nested, received_messages);
+      node, message, messages_nested, received_messages, qos_profile);
   } else if (message == "DynamicArrayNested") {
     subscriber = subscribe<test_communication::msg::DynamicArrayNested>(
-      node, message, messages_dynamic_array_nested, received_messages);
+      node, message, messages_dynamic_array_nested, received_messages, qos_profile);
   } else if (message == "BoundedArrayNested") {
     subscriber = subscribe<test_communication::msg::BoundedArrayNested>(
-      node, message, messages_bounded_array_nested, received_messages);
+      node, message, messages_bounded_array_nested, received_messages, qos_profile);
   } else if (message == "StaticArrayNested") {
     subscriber = subscribe<test_communication::msg::StaticArrayNested>(
-      node, message, messages_static_array_nested, received_messages);
+      node, message, messages_static_array_nested, received_messages, qos_profile);
   } else if (message == "Builtins") {
     subscriber = subscribe<test_communication::msg::Builtins>(
-      node, message, messages_builtins, received_messages);
+      node, message, messages_builtins, received_messages, qos_profile);
   } else {
     fprintf(stderr, "Unknown message argument '%s'\n", message.c_str());
     return 1;

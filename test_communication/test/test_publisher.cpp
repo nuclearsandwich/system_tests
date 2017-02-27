@@ -26,15 +26,15 @@ void publish(
   rclcpp::Node::SharedPtr node,
   const std::string & message_type,
   std::vector<typename T::SharedPtr> messages,
+  rmw_qos_profile_t qos_profile,
   size_t number_of_cycles = 100)
 {
   auto start = std::chrono::steady_clock::now();
 
-  rmw_qos_profile_t custom_qos_profile = rmw_qos_profile_default;
-  custom_qos_profile.depth = messages.size();
+  qos_profile.depth = messages.size();
 
   auto publisher = node->create_publisher<T>(
-    std::string("test_message_") + message_type, custom_qos_profile);
+    std::string("test_message_") + message_type, qos_profile);
 
   rclcpp::WallRate cycle_rate(10);
   rclcpp::WallRate message_rate(100);
@@ -61,40 +61,56 @@ void publish(
 int main(int argc, char ** argv)
 {
   rclcpp::init(argc, argv);
-  if (argc != 2) {
-    fprintf(stderr, "Wrong number of arguments, pass one message type\n");
+  if (argc != 3) {
+    fprintf(stderr, "Wrong number of arguments, pass a message type and a reliability policy\n");
     return 1;
   }
 
   std::string message = argv[1];
+  std::string qos_reliability_policy = argv[2];
   auto node = rclcpp::Node::make_shared(std::string("test_publisher_") + message);
 
+  rmw_qos_profile_t qos_profile = rmw_qos_profile_default;
+  if (qos_reliability_policy == "reliable") {
+    qos_profile.reliability = RMW_QOS_POLICY_RELIABILITY_RELIABLE;
+  } else if (qos_reliability_policy == "best_effort") {
+    qos_profile.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
+  } else {
+    fprintf(
+      stderr, "Unknown QoS reliability policy argument '%s'\n", qos_reliability_policy.c_str());
+    return 1;
+  }
+
   if (message == "Empty") {
-    publish<test_communication::msg::Empty>(node, message, get_messages_empty());
+    publish<test_communication::msg::Empty>(
+      node, message, get_messages_empty(), qos_profile);
   } else if (message == "Primitives") {
-    publish<test_communication::msg::Primitives>(node, message, get_messages_primitives());
+    publish<test_communication::msg::Primitives>(
+      node, message, get_messages_primitives(), qos_profile);
   } else if (message == "StaticArrayPrimitives") {
     publish<test_communication::msg::StaticArrayPrimitives>(
-      node, message, get_messages_static_array_primitives());
+      node, message, get_messages_static_array_primitives(), qos_profile);
   } else if (message == "DynamicArrayPrimitives") {
     publish<test_communication::msg::DynamicArrayPrimitives>(
-      node, message, get_messages_dynamic_array_primitives());
+      node, message, get_messages_dynamic_array_primitives(), qos_profile);
   } else if (message == "BoundedArrayPrimitives") {
     publish<test_communication::msg::BoundedArrayPrimitives>(
-      node, message, get_messages_bounded_array_primitives());
+      node, message, get_messages_bounded_array_primitives(), qos_profile);
   } else if (message == "Nested") {
-    publish<test_communication::msg::Nested>(node, message, get_messages_nested());
+    publish<test_communication::msg::Nested>(
+      node, message, get_messages_nested(), qos_profile);
   } else if (message == "DynamicArrayNested") {
     publish<test_communication::msg::DynamicArrayNested>(
-      node, message, get_messages_dynamic_array_nested());
+      node, message, get_messages_dynamic_array_nested(), qos_profile);
   } else if (message == "BoundedArrayNested") {
     publish<test_communication::msg::BoundedArrayNested>(
-      node, message, get_messages_bounded_array_nested());
+      node, message, get_messages_bounded_array_nested(), qos_profile);
   } else if (message == "StaticArrayNested") {
     publish<test_communication::msg::StaticArrayNested>(
-      node, message, get_messages_static_array_nested());
+      node, message, get_messages_static_array_nested(), qos_profile);
   } else if (message == "Builtins") {
-    publish<test_communication::msg::Builtins>(node, message, get_messages_builtins());
+    publish<test_communication::msg::Builtins>(
+      node, message, get_messages_builtins(), qos_profile);
   } else {
     fprintf(stderr, "Unknown message argument '%s'\n", message.c_str());
     return 1;
