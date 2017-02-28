@@ -30,7 +30,7 @@ rclcpp::subscription::SubscriptionBase::SharedPtr subscribe(
   std::vector<typename T::SharedPtr> & expected_messages,
   std::vector<bool> & received_messages,
   rmw_qos_profile_t qos_profile
-  )
+)
 {
   received_messages.assign(expected_messages.size(), false);
 

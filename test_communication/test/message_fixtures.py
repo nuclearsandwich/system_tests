@@ -110,7 +110,7 @@ def get_msg_primitives():
     msg.uint64_value = 1
     msg.string_value = ''
     # check strings longer then 255 characters
-    for i in range(20000):
+    for i in range(200000):
         msg.string_value += str(i % 10)
     msgs.append(msg)
 
@@ -307,7 +307,7 @@ def get_test_msg(message_name):
         msg = get_msg_primitives()
     elif 'Nested' == message_name:
         msg = get_msg_nested()
-    elif 'FieldsWithSameYype' == message_name:
+    elif 'FieldsWithSameType' == message_name:
         msg = get_msg_fields_with_same_type()
     elif 'StaticArrayNested' == message_name:
         msg = get_msg_static_array_nested()

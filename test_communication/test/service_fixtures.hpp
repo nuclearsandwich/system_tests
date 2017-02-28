@@ -109,7 +109,7 @@ get_services_primitives()
     request->uint64_value = 8;
     // check strings longer then 256 characters
     request->string_value = "";
-    for (size_t i = 0; i < 20000; ++i) {
+    for (size_t i = 0; i < 200000; ++i) {
       request->string_value += std::to_string(i % 10);
     }
     auto reply = std::make_shared<test_communication::srv::Primitives::Response>();
@@ -128,7 +128,7 @@ get_services_primitives()
     reply->uint64_value = 88;
     // check strings longer then 256 characters
     reply->string_value = "";
-    for (size_t i = 0; i < 20000; ++i) {
+    for (size_t i = 0; i < 200000; ++i) {
       reply->string_value += std::to_string(i % 10);
     }
     services.emplace_back(request, reply);
