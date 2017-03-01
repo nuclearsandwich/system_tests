@@ -38,7 +38,7 @@ def talker(message_name, number_of_cycles, qos_profile):
     node = rclpy.create_node('talker')
 
     chatter_pub = node.create_publisher(
-        msg_mod, 'test_message_' + message_name, qos_profile_default)
+        msg_mod, 'test_message_' + message_name, qos_profile)
 
     cycle_count = 0
     print('talker: beginning loop')
