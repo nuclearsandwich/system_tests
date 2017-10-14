@@ -224,6 +224,22 @@ if(BUILD_TESTING)
     endforeach()
   endmacro()
 
+  macro(generate_access_control_files)
+    execute_process(
+      COMMAND "ros2 security create_key ${CMAKE_CURRENT_SOURCE_DIR}/test_security_files ${node_name}"
+      RESULT_VARIABLE _retcode
+      OUTPUT_QUIET ERROR_QUIET)
+      )
+    execute_process(
+      COMMAND "ros2 security create_permissions ${CMAKE_CURRENT_SOURCE_DIR}/test_security_files ${node_name} ${CMAKE_CURRENT_SOURCE_DIR}/test_security_files/policy_fixtures.yaml"
+      RESULT_VARIABLE _retcode
+      OUTPUT_QUIET ERROR_QUIET)
+      )
+  endmacro()
+
+  macro(access_control_tests)
+      generate_access_control_files()
+
   macro(targets)
     set(VALID_ROS_SECURITY_ROOT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/test/test_security_files")
 
@@ -232,6 +248,11 @@ if(BUILD_TESTING)
       custom_security_test_c(test_security_nodes_c
         "test/test_invalid_secure_node_creation_c.cpp")
       security_tests()
+    endif()
+
+    # TODO(mikaelarguedas) only connext supports Access Control DDS-Security plugin for now
+    if(rmw_implementation STREQUAL "rmw_connext_cpp")
+      access_control_tests()
     endif()
   endmacro()
 
