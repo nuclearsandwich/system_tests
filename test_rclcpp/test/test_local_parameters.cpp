@@ -66,6 +66,7 @@ TEST(CLASSNAME(test_local_parameters, RMW_IMPLEMENTATION), to_string) {
 
 TEST(CLASSNAME(test_local_parameters, RMW_IMPLEMENTATION), local_synchronous) {
   auto node = rclcpp::Node::make_shared("test_parameters_local_synchronous");
+  declare_test_parameters(node);
   auto parameters_client = std::make_shared<rclcpp::SyncParametersClient>(node);
   if (!parameters_client->wait_for_service(20s)) {
     ASSERT_TRUE(false) << "service not available after waiting";
@@ -76,6 +77,7 @@ TEST(CLASSNAME(test_local_parameters, RMW_IMPLEMENTATION), local_synchronous) {
 
 TEST(CLASSNAME(test_local_parameters, RMW_IMPLEMENTATION), local_synchronous_repeated) {
   auto node = rclcpp::Node::make_shared("test_parameters_local_synchronous_repeated");
+  declare_test_parameters(node);
   auto parameters_client = std::make_shared<rclcpp::SyncParametersClient>(node);
   if (!parameters_client->wait_for_service(20s)) {
     ASSERT_TRUE(false) << "service not available after waiting";
@@ -89,6 +91,7 @@ TEST(CLASSNAME(test_local_parameters, RMW_IMPLEMENTATION), local_synchronous_rep
 
 TEST(CLASSNAME(test_local_parameters, RMW_IMPLEMENTATION), local_asynchronous) {
   auto node = rclcpp::Node::make_shared(std::string("test_parameters_local_asynchronous"));
+  declare_test_parameters(node);
   auto parameters_client = std::make_shared<rclcpp::AsyncParametersClient>(node);
   if (!parameters_client->wait_for_service(20s)) {
     ASSERT_TRUE(false) << "service not available after waiting";
@@ -103,6 +106,13 @@ public:
   ParametersAsyncNode()
   : Node("test_local_parameters_async_with_callback")
   {
+    this->create_parameter("foo");
+    this->create_parameter("bar");
+    this->create_parameter("barstr");
+    this->create_parameter("baz");
+    this->create_parameter("foobar");
+    this->create_parameter("barfoo");
+
     parameters_client_ =
       std::make_shared<rclcpp::AsyncParametersClient>(this);
   }
@@ -151,6 +161,13 @@ TEST(CLASSNAME(test_local_parameters, RMW_IMPLEMENTATION), local_async_with_call
 
 TEST(CLASSNAME(test_local_parameters, RMW_IMPLEMENTATION), helpers) {
   auto node = rclcpp::Node::make_shared("test_parameters_local_helpers");
+  node->create_parameter("foo");
+  node->create_parameter("bar");
+  node->create_parameter("barstr");
+  node->create_parameter("baz");
+  node->create_parameter("foobar");
+  node->create_parameter("barfoo");
+
   auto parameters_client = std::make_shared<rclcpp::SyncParametersClient>(node);
   if (!parameters_client->wait_for_service(20s)) {
     ASSERT_TRUE(false) << "service not available after waiting";
@@ -260,6 +277,13 @@ TEST(CLASSNAME(test_local_parameters, RMW_IMPLEMENTATION), helpers) {
 
 TEST(CLASSNAME(test_local_parameters, RMW_IMPLEMENTATION), get_from_node_primitive_type) {
   auto node = rclcpp::Node::make_shared("test_parameters_local_helpers");
+  node->create_parameter("foo");
+  node->create_parameter("bar");
+  node->create_parameter("barstr");
+  node->create_parameter("baz");
+  node->create_parameter("foobar");
+  node->create_parameter("barfoo");
+
   auto parameters_client = std::make_shared<rclcpp::SyncParametersClient>(node);
   if (!parameters_client->wait_for_service(20s)) {
     ASSERT_TRUE(false) << "service not available after waiting";
@@ -325,6 +349,13 @@ TEST(CLASSNAME(test_local_parameters, RMW_IMPLEMENTATION), get_from_node_variant
   using rclcpp::Parameter;
 
   auto node = rclcpp::Node::make_shared("test_parameters_local_helpers");
+  node->create_parameter("foo");
+  node->create_parameter("bar");
+  node->create_parameter("barstr");
+  node->create_parameter("baz");
+  node->create_parameter("foobar");
+  node->create_parameter("barfoo");
+
   auto parameters_client = std::make_shared<rclcpp::SyncParametersClient>(node);
   if (!parameters_client->wait_for_service(20s)) {
     ASSERT_TRUE(false) << "service not available after waiting";
@@ -382,6 +413,7 @@ TEST(CLASSNAME(test_local_parameters, RMW_IMPLEMENTATION), get_parameter_or) {
   using rclcpp::Parameter;
 
   auto node = rclcpp::Node::make_shared("test_parameters_get_parameter_or");
+  node->create_parameter("foo");
   auto set_parameters_results = node->set_parameters({
     Parameter("foo", 2),
   });
@@ -418,6 +450,9 @@ TEST(CLASSNAME(test_local_parameters, RMW_IMPLEMENTATION), set_parameter_if_not_
   using rclcpp::Parameter;
 
   auto node = rclcpp::Node::make_shared("test_parameters_set_parameter_if_not_set");
+  node->create_parameter("foo");
+  node->create_parameter("bar");
+
   auto set_parameters_results = node->set_parameters({
     Parameter("foo", 2),
   });
