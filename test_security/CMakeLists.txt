@@ -2,6 +2,11 @@ cmake_minimum_required(VERSION 3.5)
 
 project(test_security)
 
+  # disable xmllint since it currently fails to pass
+  # - the referenced schema are hosted via https which xmllint doesn't support
+  # - the xml files don't follow the schema
+  set(ament_xmllint_FOUND TRUE)
+
 # Default to C++14
 if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 14)
@@ -43,11 +48,6 @@ if(BUILD_TESTING)
     #   continue()
     # endif()
   endforeach()
-
-  # disable xmllint since it currently fails to pass
-  # - the referenced schema are hosted via https which xmllint doesn't support
-  # - the xml files don't follow the schema
-  set(ament_xmllint_FOUND TRUE)
 
   find_package(ament_lint_auto REQUIRED)
   ament_lint_auto_find_test_dependencies()
